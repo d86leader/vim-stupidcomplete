@@ -1,0 +1,21 @@
+*stupidcomplete.txt*    A small indent-based usercomplete function for vim
+
+Works just like any-word completion, except it's dumb and ignores words that
+are not on a correct identaion level.
+
+For example, when stationed on line 4 it will complete with aaa, bbb, ddd and
+fff but not ccc and eee in this scenario:
+>	aaa
+>	   bbb
+>		  ccc
+>	   ddd
+>		  eee
+>	fff
+
+                                                    *stupidcomplete-options*
+Use *stupidcomplete_word_regex* to set which characters are recognised as part
+of word. This can be set either as global or buffer, with buffer option taking
+precedence. By default it is set to the following value:
+>	let g:stupidcomplete_word_regex = '\m[A-Za-z0-9_]'
+
+vim:tw=78:ts=8:ft=help:norl:
