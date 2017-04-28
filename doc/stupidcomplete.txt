@@ -45,9 +45,20 @@ And to have it as a replacement, those remappings are necessary: >
 	
 ================================================================================
 3. Options					*stupidcomplete-options*
+
 Use *stupidcomplete_word_regex* to set which characters are recognised as part
 of word. This can be set either as global or buffer, with buffer option taking
 precedence. By default it is set to the following value: >
 	let g:stupidcomplete_word_regex = '\m[A-Za-z0-9_]'
+
+
+Use *stupidcomplete_lookupquotes* to set whether the text inside "" quotes
+should be searched for the word. 0 for false, 1 for true (default) >
+    let g:stupidcomplete_lookupquotes = 1
+
+Use *stupidcomplete_ignorecomments* to set whether text after commentstring
+should be unsearched for the word. 0 for false, 1 for true (default) >
+    let g:stupidcomplete_ignorecomments = 1
+
 
 vim:tw=78:ts=8:ft=help:norl:

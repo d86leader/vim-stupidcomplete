@@ -9,13 +9,15 @@ if exists('g:loaded_stupidcomplete')
 endif
 let g:loaded_stupidcomplete = 1
 
-if exists("b:stupidcomplete_word_regex")
-	let s:re = b:stupidcomplete_word_regex
-elseif exists("g:stupidcomplete_word_regex")
-	let s:re = g:stupidcomplete_word_regex
-else
-	let s:re = '\m[A-Za-z0-9_]'
+
+"setting default variables
+if !exists('g:stupidcomplete_lookupquotes')
+	let g:stupidcomplete_lookupquotes = 1
 endif
+if !exists('g:stupidcomplete_ignorecomments')
+	let g:stupidcomplete_ignorecomments = 1
+endif
+
 
 fun! s:matchall(haystack, pattern)
 	let matches = []
@@ -31,18 +33,32 @@ fun! s:matchall(haystack, pattern)
 endfun
 
 fun! s:fetch_matches(str, base, line_nr)
-	"not preceded by a-word symbol + sabsolutely no magic, don't ignore case + word + not inside quotes
-"	let expr = '\V\C' . a:base . s:re . '*' . '\v(([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)@='
-	"not preceded by a-word symbols; absolutely no magic, don't ignore case
-	let expr = '\('.s:re.'\)\@<!'.'\V\C' . a:base . s:re . '*'
-	let matches = s:matchall(a:str, expr)
+	"setup regex based on whether to lookup words inside quotes
+	if g:stupidcomplete_lookupquotes == 0
+		"not preceded by a-word symbols; absolutely no magic, don't ignore case
+		let expr = '\('.s:re.'\)\@<!'.'\V\C' . a:base . s:re . '*'
+	else
+		"not preceded by a-word symbol + absolutely no magic, don't ignore case + word + not inside quotes
+		let expr = '\('.s:re.'\)\@<!'.'\V\C' . a:base . s:re . '*' . '\v(([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)@='
+	endif
+
+	if s:stupidcomplete_ignorecomments == 0 || s:comm == ""
+		let str = a:str
+	else
+		"strip the string after commentstring
+		let str = strpart(a:str, 0, match(a:str, s:comm))
+	endif
+
+	let matches = s:matchall(str, expr)
 	"map matches into a neat dicionary which will be returned for completion
-	return map(matches, '{"word" : v:val, "info" : "Defined at line " . a:line_nr . ": " . a:str}')
+	return map(matches, '{"word" : v:val, "info" : "Defined at line " . a:line_nr . ":\n" . a:str}')
 endfun
 
 fun! Stupidcomplete(findstart, base)
 	if a:findstart
-		" locate the start of the word
+		" FIRST INVOCATION
+
+		"locate the start of the word
 		let line = getline('.')
 		let startpos = col('.') - 1
 		while startpos > 0 && line[startpos - 1] =~ s:re
@@ -59,13 +75,33 @@ fun! Stupidcomplete(findstart, base)
 		endif
 
 		return startpos
+
 	else
+		" SECOND INVOCATION
+
+		"initialize the regex
+		if exists("b:stupidcomplete_word_regex")
+			let s:re = b:stupidcomplete_word_regex
+		elseif exists("g:stupidcomplete_word_regex")
+			let s:re = g:stupidcomplete_word_regex
+		else
+			let s:re = '\m[A-Za-z0-9_]'
+		endif
+		"initialize comment string split characters
+		if &filetype == "cpp" || &filetype == "c"
+			let s:comm = "//"
+		elseif match(&commentstring, "%s") == -1
+			let s:comm = ""
+		else
+			let s:comm = strpart(&commentstring, 0, match(&commentstring, "%s"))
+		endif
+
 		"do nothing for an empty word
 		if a:base == ''
 			return {'words': []}
 		endif
 
-		"matches :: [ {word : a, abbr : a, menu : a, info : a, kind : char,  } ] <= String a
+		"matches :: [ {word : a, abbr : a, menu : a, info : a, kind : char} ] <= String a
 		let matches   = []
 
 		"find matches before current line based on indent
