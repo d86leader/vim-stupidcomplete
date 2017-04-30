@@ -42,11 +42,16 @@ fun! s:fetch_matches(str, base, line_nr)
 		let expr = '\('.s:re.'\)\@<!'.'\V\C' . a:base . s:re . '*' . '\v(([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)@='
 	endif
 
-	if s:stupidcomplete_ignorecomments == 0 || s:comm == ""
+	if g:stupidcomplete_ignorecomments == 0 || s:comm == ""
 		let str = a:str
 	else
 		"strip the string after commentstring
-		let str = strpart(a:str, 0, match(a:str, s:comm))
+		let i = stridx(a:str, s:comm)
+		if i == -1
+			let str = a:str
+		else
+			let str = strpart(a:str, 0, i)
+		endif
 	endif
 
 	let matches = s:matchall(str, expr)
@@ -58,27 +63,6 @@ fun! Stupidcomplete(findstart, base)
 	if a:findstart
 		" FIRST INVOCATION
 
-		"locate the start of the word
-		let line = getline('.')
-		let startpos = col('.') - 1
-		while startpos > 0 && line[startpos - 1] =~ s:re
-			let startpos -= 1
-		endwhile
-
-		"initialize the word matching expression
-		if exists("b:stupidcomplete_word_regex")
-			let s:re = b:stupidcomplete_word_regex
-		elseif exists("g:stupidcomplete_word_regex")
-			let s:re = g:stupidcomplete_word_regex
-		else
-			let s:re = '\m[A-Za-z0-9_]'
-		endif
-
-		return startpos
-
-	else
-		" SECOND INVOCATION
-
 		"initialize the regex
 		if exists("b:stupidcomplete_word_regex")
 			let s:re = b:stupidcomplete_word_regex
@@ -87,8 +71,21 @@ fun! Stupidcomplete(findstart, base)
 		else
 			let s:re = '\m[A-Za-z0-9_]'
 		endif
+
+		"locate the start of the word
+		let line = getline('.')
+		let startpos = col('.') - 1
+		while startpos > 0 && line[startpos - 1] =~ s:re
+			let startpos -= 1
+		endwhile
+
+		return startpos
+
+	else
+		" SECOND INVOCATION
+
 		"initialize comment string split characters
-		if &filetype == "cpp" || &filetype == "c"
+		if &commentstring == "/*%s*/"
 			let s:comm = "//"
 		elseif match(&commentstring, "%s") == -1
 			let s:comm = ""
@@ -110,9 +107,16 @@ fun! Stupidcomplete(findstart, base)
 		let all_lines = []
 		while cline > 1
 			let cline   = cline - 1
+
+			"ignore more indented line
 			if indent(cline) > cindent
 				continue
 			endif
+			"ignore empty line
+			if getline(cline) =~ "^\s*$"
+				continue
+			endif
+
 			let matches = matches + s:fetch_matches(getline(cline), a:base, cline)
 			let cindent = min([cindent, indent(cline)])
 		endwhile
@@ -123,9 +127,16 @@ fun! Stupidcomplete(findstart, base)
 		let all_lines = []
 		while cline < line('$')
 			let cline   = cline + 1
+
+			"ignore more indented line
 			if indent(cline) > cindent
 				continue
 			endif
+			"ignore empty line
+			if getline(cline) =~ "^\s*$"
+				continue
+			endif
+
 			let matches = matches + s:fetch_matches(getline(cline), a:base, cline)
 			let cindent = min([cindent, indent(cline)])
 			"specially for haskell: "where" word broadens search
