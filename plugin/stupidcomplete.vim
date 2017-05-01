@@ -19,7 +19,7 @@ if !exists('g:stupidcomplete_ignorecomments')
 endif
 
 
-fun! s:matchall(haystack, pattern)
+fun! s:matchall(haystack, pattern) abort
 	let matches = []
 	let index   = 0
 	let end     = matchend(a:haystack, a:pattern)
@@ -32,7 +32,7 @@ fun! s:matchall(haystack, pattern)
 	return matches
 endfun
 
-fun! s:fetch_matches(str, base, line_nr)
+fun! s:fetch_matches(str, base, line_nr) abort
 	"setup regex based on whether to lookup words inside quotes
 	if g:stupidcomplete_lookupquotes == 0
 		"not preceded by a-word symbols; absolutely no magic, don't ignore case
@@ -59,7 +59,7 @@ fun! s:fetch_matches(str, base, line_nr)
 	return map(matches, '{"word" : v:val, "info" : "Defined at line " . a:line_nr . ":\n" . a:str}')
 endfun
 
-fun! Stupidcomplete(findstart, base)
+fun! Stupidcomplete(findstart, base) abort
 	if a:findstart
 		" FIRST INVOCATION
 
