@@ -1,5 +1,4 @@
 " Description: A small indent-based usercomplete function for vim
-" Maintainer:	some non-disclosing walrus
 
 let s:save_cpo = &cpo
 set cpo&vim
@@ -26,7 +25,7 @@ fun! s:matchall(haystack, pattern) abort
 	while end != -1
 		call add(matches, matchstr(a:haystack, a:pattern, index))
 		let  nindex = end
-		let  end    = matchend(a:haystack, a:pattern, index)
+		let  end    = matchend(a:haystack, a:pattern, nindex)
 		let  index  = nindex
 	endwhile
 	return matches
