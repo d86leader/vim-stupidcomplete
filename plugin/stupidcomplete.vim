@@ -65,6 +65,24 @@ fun! s:fetch_matches(str, base, line_nr) abort
 	return map(matches, '{"word" : v:val, "info" : "Defined at line " . a:line_nr . ":\n" . a:str}')
 endfun
 
+fun! s:is_empty(line_nr) abort
+	let str = getline(a:line_nr)
+	"most basic check: line literally empty
+	if getline(str) =~ "^\s*$"
+		return 1
+
+	"next: if line starts with comment
+	elseif stridx(str, s:comm) == 0
+		return 1
+
+	"should add a check if line is an indented comment
+
+	"not empty otherwise
+	else
+		return 0
+	endif
+endfun
+
 fun! Stupidcomplete(findstart, base) abort
 	if a:findstart
 		" FIRST INVOCATION
@@ -124,7 +142,8 @@ fun! Stupidcomplete(findstart, base) abort
 				continue
 			endif
 			"ignore empty line
-			if getline(cline) =~ "^\s*$"
+"			if getline(cline) =~ "^\s*$"
+			if s:is_empty(cline)
 				continue
 			endif
 
@@ -147,7 +166,7 @@ fun! Stupidcomplete(findstart, base) abort
 				continue
 			endif
 			"ignore empty line
-			if getline(cline) =~ "^\s*$"
+			if s:is_empty(cline)
 				continue
 			endif
 
