@@ -16,6 +16,9 @@ endif
 if !exists('g:stupidcomplete_ignorecomments')
 	let g:stupidcomplete_ignorecomments = 1
 endif
+if !exists('g:stupidcomplete_all_for_empty')
+	let g:stupidcomplete_all_for_empty = 1
+endif
 
 
 fun! s:matchall(haystack, pattern) abort
@@ -31,6 +34,10 @@ fun! s:matchall(haystack, pattern) abort
 	return matches
 endfun
 
+"function's name is self-descriptive
+"note to self: it's probably better to keep str as argument as the match's
+"line is used both cut and uncut, and it shouldn't matter much where the
+"string is made, in the caller or callee: i hope vim is optimized enough
 fun! s:fetch_matches(str, base, line_nr) abort
 	"setup regex based on whether to lookup words inside quotes
 	if g:stupidcomplete_lookupquotes == 0
@@ -98,7 +105,9 @@ fun! Stupidcomplete(findstart, base) abort
 		endif
 
 		"matches :: [ {word : a, abbr : a, menu : a, info : a, kind : char} ] <= String a
-		let matches   = []
+		let matches = []
+		"same type; used to collect matches even on more indented lines
+		let other_matches = []
 
 		"find matches before current line based on indent
 		let cline     = line('.')
@@ -107,8 +116,11 @@ fun! Stupidcomplete(findstart, base) abort
 		while cline > 1
 			let cline   = cline - 1
 
-			"ignore more indented line
+			"from more indented line collect to special array
 			if indent(cline) > cindent
+				if g:stupidcomplete_all_for_empty
+					let other_matches = other_matches + s:fetch_matches(getline(cline), a:base, cline)
+				endif
 				continue
 			endif
 			"ignore empty line
@@ -127,8 +139,11 @@ fun! Stupidcomplete(findstart, base) abort
 		while cline < line('$')
 			let cline   = cline + 1
 
-			"ignore more indented line
+			"from more indented line collect to special array
 			if indent(cline) > cindent
+				if g:stupidcomplete_all_for_empty
+					let other_matches = other_matches + s:fetch_matches(getline(cline), a:base, cline)
+				endif
 				continue
 			endif
 			"ignore empty line
@@ -147,7 +162,12 @@ fun! Stupidcomplete(findstart, base) abort
 		"add tag items to completion (should it?)
 "		let matches = matches + <SID>tag_matches(base)
 
-		return {'words' : matches}
+		"if there were no matches, return other matches (if user wants)
+		if matches == [] && g:stupidcomplete_all_for_empty
+			return {'words' : other_matches}
+		else
+			return {'words' : matches}
+		endif
 
 	endif
 endfun
