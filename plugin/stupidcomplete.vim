@@ -3,7 +3,7 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-if exists('g:loaded_stupidcomplete')
+if exists('g:loaded_stupidcomplete') && !exists('g:force_reload_stupidcomplete')
 	finish
 endif
 let g:loaded_stupidcomplete = 1
@@ -61,18 +61,27 @@ fun! s:fetch_matches(str, base, line_nr) abort
 	endif
 
 	let matches = s:matchall(str, expr)
+
 	"map matches into a neat dicionary which will be returned for completion
 	return map(matches, '{"word" : v:val, "info" : "Defined at line " . a:line_nr . ":\n" . a:str}')
 endfun
 
 fun! s:is_empty(line_nr) abort
 	let str = getline(a:line_nr)
+
 	"most basic check: line literally empty
-	if getline(str) =~ "^\s*$"
+	if str =~ "^\s*$"
+		if exists('g:debug')
+			echo 'disregarded line ```' . str . '``` as it is fully empty'
+		endif
+		
 		return 1
 
 	"next: if line starts with comment
-	elseif stridx(str, s:comm) == 0
+	elseif s:comm != "" && stridx(str, s:comm) == 0
+		if exists('g:debug')
+			echo 'disregarded line ```' . str . '``` as it starts with comment'
+		endif
 		return 1
 
 	"should add a check if line is an indented comment
@@ -137,7 +146,7 @@ fun! Stupidcomplete(findstart, base) abort
 			"from more indented line collect to special array
 			if indent(cline) > cindent
 				if g:stupidcomplete_all_for_empty
-					let other_matches = other_matches + s:fetch_matches(getline(cline), a:base, cline)
+					let other_matches += s:fetch_matches(getline(cline), a:base, cline)
 				endif
 				continue
 			endif
@@ -147,7 +156,7 @@ fun! Stupidcomplete(findstart, base) abort
 				continue
 			endif
 
-			let matches = matches + s:fetch_matches(getline(cline), a:base, cline)
+			let matches += s:fetch_matches(getline(cline), a:base, cline)
 			let cindent = min([cindent, indent(cline)])
 		endwhile
 
@@ -161,16 +170,17 @@ fun! Stupidcomplete(findstart, base) abort
 			"from more indented line collect to special array
 			if indent(cline) > cindent
 				if g:stupidcomplete_all_for_empty
-					let other_matches = other_matches + s:fetch_matches(getline(cline), a:base, cline)
+					let other_matches += s:fetch_matches(getline(cline), a:base, cline)
 				endif
 				continue
 			endif
 			"ignore empty line
+"			if getline(cline) =~ "^\s*$"
 			if s:is_empty(cline)
 				continue
 			endif
 
-			let matches = matches + s:fetch_matches(getline(cline), a:base, cline)
+			let matches += s:fetch_matches(getline(cline), a:base, cline)
 			let cindent = min([cindent, indent(cline)])
 			"specially for haskell: "where" word broadens search
 			if match(getline(cline), "where") != -1
