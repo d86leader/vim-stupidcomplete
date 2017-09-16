@@ -19,7 +19,7 @@ variable in your |vimrc| file: >
 1. Intro					*stupidcomplete-intro*
 
 Works just like any-word completion, except it's dumb and ignores words that
-are not on a correct identaion level.
+are not on a correct indentaion level.
 
 For example, when stationed on line 4 it will complete with aaa, bbb, ddd and
 fff but not ccc and eee in this scenario: >
