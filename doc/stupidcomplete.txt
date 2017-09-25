@@ -22,13 +22,14 @@ Works just like any-word completion, except it's dumb and ignores words that
 are not on a correct identaion level.
 
 For example, when stationed on line 4 it will complete with aaa, bbb, ddd and
-fff but not ccc and eee in this scenario: >
-   aaa
-      bbb
-         ccc
-      ddd
-         eee
-   fff
+fff but not ccc, or eee, or ggg in this scenario: >
+ 1   aaa
+ 2      bbb
+ 3         ccc
+ 4      ddd
+ 5         eee
+ 6   fff
+ 7      ggg
 <
 
 ================================================================================
