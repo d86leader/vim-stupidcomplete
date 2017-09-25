@@ -7,13 +7,13 @@ it looks up.
 This completion is not aware of your language, it will suggest you all the
 words it will find. But it only looks for words in correctly indented lines.
 In the following example:  
-`1   aaa  
-2      bbb  
-3         ccc  
-4      ddd <-- cursor on this line  
-5         eee  
-6   fff  
-7      ggg`  
+`1   aaa`  
+`2      bbb`  
+`3         ccc`  
+`4      ddd <-- cursor on this line`  
+`5         eee`  
+`6   fff`  
+`7      ggg`  
 it will suggest you words aaa, bbb and fff, but not ccc or eee or ggg.
 
 ## Installation
