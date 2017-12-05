@@ -102,7 +102,7 @@ fun! Stupidcomplete(findstart, base) abort
 		elseif exists("g:stupidcomplete_word_regex")
 			let s:re = g:stupidcomplete_word_regex
 		else
-			let s:re = '\k'
+			let s:re = '\m\k'
 		endif
 
 		"locate the start of the word

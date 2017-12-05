@@ -50,7 +50,7 @@ And to have it as a replacement, those remappings are necessary: >
 Use *stupidcomplete_word_regex* to set which characters are recognised as part
 of word. This can be set either as global or buffer, with buffer option taking
 precedence. By default it is set to the following value: >
-    let g:stupidcomplete_word_regex = '\k'
+    let g:stupidcomplete_word_regex = '\m\k'
 
 
 Use *stupidcomplete_lookupquotes* to set whether the text inside "" quotes
